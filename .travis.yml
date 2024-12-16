@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t codeskeeper/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run codeskeeper/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t codeskeeper/multi-client ./client
+  - docker build -t codeskeeper/multi-server ./server
+  - docker build -t codeskeeper/multi-worker ./worker
+  - docker build -t codeskeeper/multi-nginx ./nginx
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push codeskeeper/multi-client
+  - docker push codeskeeper/multi-server
+  - docker push codeskeeper/multi-worker
+  - docker push codeskeeper/multi-nginx
